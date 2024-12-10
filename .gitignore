@@ -24,3 +24,7 @@ __pycache__/
 Building
 Determining
 Python
+venv/
+*.db
+__pycache__/
+*.pyc
