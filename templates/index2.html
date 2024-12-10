@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BioQuest - Learning Platform</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f9f9f9;
+        }
+        input, button, select {
+            padding: 10px;
+            margin: 5px 0;
+            font-size: 16px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .section {
+            margin-top: 30px;
+            padding: 20px;
+            background: #fff;
+            border: 1px solid #ddd;
+        }
+        #chatbox .message {
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .user-message {
+            background-color: #d1e7dd;
+        }
+        .assistant-message {
+            background-color: #f8d7da;
+        }
+        pre {
+            background: #eee;
+            padding: 10px;
+            border: 1px solid #ddd;
+            overflow: auto;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+        iframe {
+            width: 100%;
+            height: 300px;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Welcome to BioQuest</h1>
+    <p>Your learning assistant for biology and more!</p>
+
+    <!-- Chatbox Section -->
+    <div id="chatbox" class="section">
+        <h2>Chat with Assistant</h2>
+        <div id="messages"></div>
+        <input type="text" id="chatInput" placeholder="Type your message here">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+
+    <!-- Media Section -->
+    <div id="media-section" class="section">
+        <h2>Explore Media</h2>
+        <label for="mediaTopic">Topic:</label>
+        <input type="text" id="mediaTopic" placeholder="e.g., photosynthesis">
+        <button onclick="fetchMedia()">Fetch Media</button>
+        <div id="mediaDisplay">
+            <h3>Image:</h3>
+            <img id="mediaImage" alt="Image related to the topic will appear here">
+            <h3>Video:</h3>
+            <iframe id="mediaVideo" allowfullscreen></iframe>
+        </div>
+    </div>
+
+    
+
+    <!-- Quiz Section -->
+    <div id="quiz-section" class="section">
+        <h2>Generate a Quiz</h2>
+        <label for="quizTopic">Topic:</label>
+        <input type="text" id="quizTopic" placeholder="e.g., photosynthesis">
+        <label for="quizQuestions">Number of Questions:</label>
+        <select id="quizQuestions">
+            <option value="3">3</option>
+            <option value="5">5</option>
+            <option value="10">10</option>
+        </select>
+        <button onclick="generateQuiz()">Generate Quiz</button>
+        <h3>Quiz Questions:</h3>
+        <pre id="quizOutput"></pre>
+    </div>
+
+    <script>
+        // Chatbox logic
+        async function sendMessage() {
+            const userMessage = document.getElementById("chatInput").value;
+            if (!userMessage) {
+                alert("Please enter a message!");
+                return;
+            }
+
+            // Add user message to the chat display
+            addMessageToChat("user", userMessage);
+
+            try {
+                // Send message to the backend
+                const response = await fetch("http://127.0.0.1:8000/query", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ prompt: userMessage })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                const assistantMessage = data.data.chat_history[data.data.chat_history.length - 1].content;
+
+                // Add assistant message to the chat display
+                addMessageToChat("assistant", assistantMessage);
+            } catch (error) {
+                addMessageToChat("assistant", "Error: " + error.message);
+            }
+
+            // Clear the input field
+            document.getElementById("chatInput").value = "";
+        }
+
+        function addMessageToChat(role, content) {
+            const messageDiv = document.createElement("div");
+            messageDiv.className = "message " + (role === "user" ? "user-message" : "assistant-message");
+            messageDiv.textContent = `${role.charAt(0).toUpperCase() + role.slice(1)}: ${content}`;
+            document.getElementById("messages").appendChild(messageDiv);
+        }
+
+        // Fetch Media (Image and Video)
+        async function fetchMedia() {
+            const topic = document.getElementById("mediaTopic").value;
+            if (!topic) {
+                alert("Please enter a topic!");
+                return;
+            }
+
+            try {
+                // Fetch image
+                const imageResponse = await fetch(`http://127.0.0.1:8000/image?topic=${topic}`);
+                if (imageResponse.ok) {
+                    const imageData = await imageResponse.json();
+                    document.getElementById("mediaImage").src = imageData.url;
+                } else {
+                    document.getElementById("mediaImage").alt = "No image found.";
+                }
+
+                // Fetch video
+                const videoResponse = await fetch(`http://127.0.0.1:8000/video?topic=${topic}`);
+                if (videoResponse.ok) {
+                    const videoData = await videoResponse.json();
+                    document.getElementById("mediaVideo").src = videoData.url;
+                } else {
+                    document.getElementById("mediaVideo").src = "";
+                }
+            } catch (error) {
+                alert("Error fetching media: " + error.message);
+            }
+        }
+
+        // Quiz generation logic
+        async function generateQuiz() {
+            const topic = document.getElementById("quizTopic").value;
+            const numQuestions = document.getElementById("quizQuestions").value;
+
+            if (!topic) {
+                alert("Please enter a topic for the quiz!");
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://127.0.0.1:8000/quiz?topic=${topic}&num_questions=${numQuestions}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                document.getElementById("quizOutput").innerText = JSON.stringify(data.questions, null, 2);
+            } catch (error) {
+                document.getElementById("quizOutput").innerText = "Error: " + error.message;
+            }
+        }
+    </script>
+</body>
+</html>
