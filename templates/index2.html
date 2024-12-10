@@ -103,6 +103,9 @@
     </div>
 
     <script>
+        // 更新为 Heroku 部署的 URL
+        const API_BASE = "https://bioquest1-c1639d89ae16.herokuapp.com/";
+    
         // Chatbox logic
         async function sendMessage() {
             const userMessage = document.getElementById("chatInput").value;
@@ -110,44 +113,44 @@
                 alert("Please enter a message!");
                 return;
             }
-
+    
             // Add user message to the chat display
             addMessageToChat("user", userMessage);
-
+    
             try {
                 // Send message to the backend
-                const response = await fetch("http://127.0.0.1:8000/query", {
+                const response = await fetch(`${API_BASE}/query`, {  // 修改这里
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"
                     },
                     body: JSON.stringify({ prompt: userMessage })
                 });
-
+    
                 if (!response.ok) {
                     throw new Error(`HTTP error! Status: ${response.status}`);
                 }
-
+    
                 const data = await response.json();
                 const assistantMessage = data.data.chat_history[data.data.chat_history.length - 1].content;
-
+    
                 // Add assistant message to the chat display
                 addMessageToChat("assistant", assistantMessage);
             } catch (error) {
                 addMessageToChat("assistant", "Error: " + error.message);
             }
-
+    
             // Clear the input field
             document.getElementById("chatInput").value = "";
         }
-
+    
         function addMessageToChat(role, content) {
             const messageDiv = document.createElement("div");
             messageDiv.className = "message " + (role === "user" ? "user-message" : "assistant-message");
             messageDiv.textContent = `${role.charAt(0).toUpperCase() + role.slice(1)}: ${content}`;
             document.getElementById("messages").appendChild(messageDiv);
         }
-
+    
         // Fetch Media (Image and Video)
         async function fetchMedia() {
             const topic = document.getElementById("mediaTopic").value;
@@ -155,19 +158,19 @@
                 alert("Please enter a topic!");
                 return;
             }
-
+    
             try {
                 // Fetch image
-                const imageResponse = await fetch(`http://127.0.0.1:8000/image?topic=${topic}`);
+                const imageResponse = await fetch(`${API_BASE}/image?topic=${topic}`);  // 修改这里
                 if (imageResponse.ok) {
                     const imageData = await imageResponse.json();
                     document.getElementById("mediaImage").src = imageData.url;
                 } else {
                     document.getElementById("mediaImage").alt = "No image found.";
                 }
-
+    
                 // Fetch video
-                const videoResponse = await fetch(`http://127.0.0.1:8000/video?topic=${topic}`);
+                const videoResponse = await fetch(`${API_BASE}/video?topic=${topic}`);  // 修改这里
                 if (videoResponse.ok) {
                     const videoData = await videoResponse.json();
                     document.getElementById("mediaVideo").src = videoData.url;
@@ -178,23 +181,23 @@
                 alert("Error fetching media: " + error.message);
             }
         }
-
+    
         // Quiz generation logic
         async function generateQuiz() {
             const topic = document.getElementById("quizTopic").value;
             const numQuestions = document.getElementById("quizQuestions").value;
-
+    
             if (!topic) {
                 alert("Please enter a topic for the quiz!");
                 return;
             }
-
+    
             try {
-                const response = await fetch(`http://127.0.0.1:8000/quiz?topic=${topic}&num_questions=${numQuestions}`);
+                const response = await fetch(`${API_BASE}/quiz?topic=${topic}&num_questions=${numQuestions}`);  // 修改这里
                 if (!response.ok) {
                     throw new Error(`HTTP error! Status: ${response.status}`);
                 }
-
+    
                 const data = await response.json();
                 document.getElementById("quizOutput").innerText = JSON.stringify(data.questions, null, 2);
             } catch (error) {
@@ -202,5 +205,6 @@
             }
         }
     </script>
+    
 </body>
 </html>
