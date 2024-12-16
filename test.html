@@ -11,21 +11,21 @@
 
 <body>
     <div class="head-block">
-        <h1>Welcom BioQuest</h1>
+        <h1>Welcome to BioQuest</h1>
         <img class="svg-dna" src="./assets/dna.svg" alt="icon-bio">
     </div>
     <p>Your learning assistant for biology and more!</p>
 
 
-    <!-- Раздел чата -->
+    <!-- Chat Section -->
     <div id="chatbox" class="section">
-        <h2>Chat with Assistant</h2>
+        <h2>Ask me </h2>
         <div id="messages"></div>
-        <input type="text" id="chatInput" placeholder="Введите ваше сообщение">
+        <input type="text" id="chatInput" placeholder="Ask me">
         <button onclick="sendMessage()">Send</button>
     </div>
 
-    <!-- Раздел для мультимедиа -->
+    <!-- Media Section -->
     <div id="media-section" class="section">
         <div class="media-info">
             <h2>Explore Media</h2>
@@ -49,10 +49,10 @@
     </div>
 
 
-    <!-- Раздел для викторин -->
+    <!-- Quiz Section -->
     <div id="quiz-section" class="section">
         <h2>Generate a Quiz</h2>
-        <label for="quizTopic">Тема:</label>
+        <label for="quizTopic">Topic:</label>
         <input type="text" id="quizTopic" placeholder="e.g., photosynthesis">
         <label for="quizQuestions"> Number of Questions:</label>
         <select id="quizQuestions">
@@ -63,24 +63,24 @@
         <button onclick="generateQuiz()">Generate Quiz</button>
         <h3>Quiz Questions:</h3>
         <div class="loader-block">
-            <div class="loader" style="display: none;"></div> <!--Скрытый индикатор загрузки-->
+            <div class="loader" style="display: none;"></div> <!-- Hidden loading indicator -->
         </div>
         <div id="quizOutput"></div>
     </div>
 
     <script>
-        // URL вашего API (Heroku или другой сервер)
+        // URL of your API (Heroku or another server)
         const API_BASE = "https://bioquest1-c1639d89ae16.herokuapp.com/";
 
-        // Логика для работы с чатом
+        // Logic for chat functionality
         async function sendMessage() {
             const userMessage = document.getElementById("chatInput").value;
             if (!userMessage) {
-                alert("Пожалуйста, введите сообщение!");
+                alert("Please enter a message!");
                 return;
             }
 
-            // Отображение сообщения пользователя в интерфейсе
+            // Display the user's message in the interface
             addMessageToChat("user", userMessage);
 
             try {
@@ -93,7 +93,7 @@
                 });
 
                 if (!response.ok) {
-                    throw new Error(`Ошибка HTTP! Статус: ${response.status}`);
+                    throw new Error(`HTTP Error! Status: ${response.status}`);
                 }
 
                 const data = await response.json();
@@ -101,7 +101,7 @@
 
                 addMessageToChat("assistant", assistantMessage);
             } catch (error) {
-                addMessageToChat("assistant", "Ошибка: " + error.message);
+                addMessageToChat("assistant", "Error: " + error.message);
             }
 
             document.getElementById("chatInput").value = "";
@@ -114,11 +114,11 @@
             document.getElementById("messages").appendChild(messageDiv);
         }
 
-        // Логика загрузки мультимедиа (изображения и видео)
+        // Logic for loading media (images and videos)
         async function fetchMedia() {
             const topic = document.getElementById("mediaTopic").value;
             if (!topic) {
-                alert("Пожалуйста, введите тему!");
+                alert("Please enter a topic!");
                 return;
             }
 
@@ -128,7 +128,7 @@
                     const imageData = await imageResponse.json();
                     document.getElementById("mediaImage").src = imageData.url;
                 } else {
-                    document.getElementById("mediaImage").alt = "Изображение не найдено.";
+                    document.getElementById("mediaImage").alt = "Image not found.";
                 }
 
                 const videoResponse = await fetch(`${API_BASE}/video?topic=${topic}`);
@@ -139,28 +139,28 @@
                     document.getElementById("mediaVideo").src = "";
                 }
             } catch (error) {
-                alert("Ошибка загрузки мультимедиа: " + error.message);
+                alert("Error loading media: " + error.message);
             }
         }
 
-        // Логика генерации викторины
+        // Logic for quiz generation
         async function generateQuiz() {
             const topic = document.getElementById("quizTopic").value;
             const numQuestions = document.getElementById("quizQuestions").value;
 
             if (!topic) {
-                alert("Пожалуйста, введите тему для викторины!");
+                alert("Please enter a topic for the quiz!");
                 return;
             }
 
-            // Показать индикатор загрузки
+            // Show the loading indicator
             const loader = document.querySelector(".loader");
             loader.style.display = "block";
 
             try {
                 const response = await fetch(`${API_BASE}/quiz?topic=${topic}&num_questions=${numQuestions}`);
                 if (!response.ok) {
-                    throw new Error(`Ошибка HTTP! Статус: ${response.status}`);
+                    throw new Error(`HTTP Error! Status: ${response.status}`);
                 }
 
                 const data = await response.json();
@@ -168,12 +168,11 @@
                 loader.style.display = "none";
                 console.log(data)
 
-
                 displayQuiz(data);
             } catch (error) {
-                // Скрыть индикатор загрузки в случае ошибки
+                // Hide the loading indicator in case of error
                 loader.style.display = "none";
-                document.getElementById("quizOutput").innerHTML = `<p>Ошибка: ${error.message}</p>`;
+                document.getElementById("quizOutput").innerHTML = `<p>Error: ${error.message}</p>`;
             }
         }
 
@@ -181,10 +180,10 @@
             const quizOutput = document.getElementById("quizOutput");
             quizOutput.innerHTML = "";
 
-            // Проверяем, что quizData.questions существует и является массивом
+            // Check that quizData.questions exists and is an array
             const questions = quizData.questions || [];
 
-            // Перебираем вопросы и отображаем их
+            // Iterate through questions and display them
             questions.forEach((item, index) => {
                 const questionContainer = document.createElement("div");
                 questionContainer.className = "quiz-question";
